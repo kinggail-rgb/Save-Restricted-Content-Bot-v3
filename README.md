@@ -36,6 +36,7 @@ Please do start and max fork thanks
 - ~~ads setup shorlink ads token system~~
 - ~~fast uploader via `SpyLib` using Telethon modules and `mautrix bridge repo`~~ 
 - Directly upload to `topic` in any topic enabled group
+- real time download and uplaod progress, support chats, text , audio, video , video note sticker everything
 
   
 ## ⚡ Commands
@@ -127,7 +128,7 @@ To run the bot, you'll need to configure a few sensitive variables. Here's how t
 <summary><b>Deploy on Heroku</b></summary>
 
 1. Fork and Star the repo.
-2. Click [Deploy on Heroku](https://heroku.com/deploy).
+2. Click [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://www.heroku.com/deploy).
 3. Enter required variables and click deploy ✅.
 
 </details>

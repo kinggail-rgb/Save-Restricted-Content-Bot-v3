@@ -2,7 +2,7 @@
 # Licensed under the GNU General Public License v3.0.  
 # See LICENSE file in the repository root for full license text.
 
-import os, re, time, asyncio
+import os, re, time, asyncio, json, asyncio 
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import UserNotParticipant
@@ -14,9 +14,6 @@ from plugins.settings import rename_file
 from plugins.start import subscribe as sub
 from utils.custom_filters import login_in_progress
 from utils.encrypt import dcs
-import os
-import json
-import asyncio
 from typing import Dict, Any, Optional
 
 
@@ -25,6 +22,10 @@ Z, P, UB, UC, emp = {}, {}, {}, {}, {}
 
 ACTIVE_USERS = {}
 ACTIVE_USERS_FILE = "active_users.json"
+
+# fixed directory file_name problems 
+def sanitize(filename):
+    return re.sub(r'[<>:"/\\|?*\']', '_', filename).strip(" .")[:255]
 
 def load_active_users():
     try:
@@ -222,15 +223,41 @@ async def process_msg(c, u, m, d, lt, uid, i):
             
             st = time.time()
             p = await c.send_message(d, 'Downloading...')
+
+            c_name = f"{time.time()}"
+            if m.video:
+                file_name = m.video.file_name
+                if not file_name:
+                    file_name = f"{time.time()}.mp4"
+                    c_name = sanitize(file_name)
+            elif m.audio:
+                file_name = m.audio.file_name
+                if not file_name:
+                    file_name = f"{time.time()}.mp3"
+                    c_name = sanitize(file_name)
+            elif m.document:
+                file_name = m.document.file_name
+                if not file_name:
+                    file_name = f"{time.time()}"
+                    c_name = sanitize(file_name)
+            elif m.photo:
+                file_name = f"{time.time()}.jpg"
+                c_name = sanitize(file_name)
+    
+            f = await u.download_media(m, file_name=c_name, progress=prog, progress_args=(c, d, p.id, st))
             
-            f = await u.download_media(m, progress=prog, progress_args=(c, d, p.id, st))
-                
             if not f:
                 await c.edit_message_text(d, p.id, 'Failed.')
                 return 'Failed.'
             
             await c.edit_message_text(d, p.id, 'Renaming...')
-            f = await rename_file(f, d, p)
+            if (
+                (m.video and m.video.file_name) or
+                (m.audio and m.audio.file_name) or
+                (m.document and m.document.file_name)
+            ):
+                f = await rename_file(f, d, p)
+            
             fsize = os.path.getsize(f) / (1024 * 1024 * 1024)
             th = thumbnail(d)
             
